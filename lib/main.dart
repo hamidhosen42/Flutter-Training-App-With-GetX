@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:traing_app_wth_getx/home_page.dart';
+import 'package:traing_app_wth_getx/video_info.dart';
 
 void main(List<String> args) {
   runApp(MyApp());
@@ -16,7 +17,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: HomePage(),
+      // home: HomePage(),
+      home: VideoInfo(),
     );
   }
 }

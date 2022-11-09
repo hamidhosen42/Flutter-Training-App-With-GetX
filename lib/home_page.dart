@@ -18,8 +18,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List info = [];
 
-  _initData() {
-    DefaultAssetBundle.of(context)
+  _initData() async{
+    await DefaultAssetBundle.of(context)
         .loadString("json/info.json")
         .then((value) => {info = json.decode(value)});
   }
@@ -317,8 +317,8 @@ class _HomePageState extends State<HomePage> {
                     removeTop: true,
                     context: context,
                     child: ListView.builder(
-                        // itemCount: (info.length.toDouble()/2).toInt(),//2
-                        itemCount: 3,
+                        itemCount: (info.length.toDouble()/2).toInt(),//2
+                        // itemCount: 3,
                         itemBuilder: (_, i) {
                           int a = 2 * i; //0, 2,
                           int b = 2 * i + 1; //1, 3

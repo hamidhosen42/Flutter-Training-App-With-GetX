@@ -38,6 +38,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   get: any
   syncfusion_flutter_datepicker: any
+  video_player: any
 
 dev_dependencies:
   flutter_test:

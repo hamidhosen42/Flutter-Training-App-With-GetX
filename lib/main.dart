@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:traing_app_wth_getx/home_page.dart';
 import 'package:traing_app_wth_getx/video_info.dart';
 
@@ -12,13 +13,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      // home: HomePage(),
-      home: VideoInfo(),
+      home: HomePage(),
+      // home: VideoInfo(),
     );
   }
 }

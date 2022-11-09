@@ -1,7 +1,11 @@
 // ignore_for_file: prefer_const_constructors, sized_box_for_whitespace
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:traing_app_wth_getx/colors.dart';
+import 'package:traing_app_wth_getx/home_page.dart';
 
 class VideoInfo extends StatefulWidget {
   const VideoInfo({super.key});
@@ -11,6 +15,22 @@ class VideoInfo extends StatefulWidget {
 }
 
 class _VideoInfoState extends State<VideoInfo> {
+  List info = [];
+
+  _initData() {
+    DefaultAssetBundle.of(context)
+        .loadString("json/videoinfo.json")
+        .then((value) => {info = json.decode(value)});
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _initData();
+    // print(info);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,10 +55,15 @@ class _VideoInfoState extends State<VideoInfo> {
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Icons.arrow_back_ios,
-                        size: 20,
-                        color: AppColor.secondPageIconColor,
+                      InkWell(
+                        onTap: () {
+                          Get.to(()=>HomePage());
+                        },
+                        child: Icon(
+                          Icons.arrow_back_ios,
+                          size: 20,
+                          color: AppColor.secondPageIconColor,
+                        ),
                       ),
                       Expanded(child: Container()),
                       Icon(
@@ -147,13 +172,51 @@ class _VideoInfoState extends State<VideoInfo> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(80),
+                    topRight: Radius.circular(70),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      offset: Offset(5, 10),
-                      blurRadius: 10,
-                      color: AppColor.gradientSecond.withOpacity(0.2),
+                ),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 30,
+                    ),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 25,
+                        ),
+                        Text(
+                          "Circuit 1 : Legs Toning",
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: AppColor.circuitsColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Expanded(child: Container()),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.loop,
+                              color: AppColor.loopColor,
+                              size: 30,
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text(
+                              "3 sets",
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: AppColor.setsColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          width: 25,
+                        ),
+                      ],
                     ),
                   ],
                 ),

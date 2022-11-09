@@ -3,7 +3,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:traing_app_wth_getx/Date/date.dart';
 import 'package:traing_app_wth_getx/colors.dart';
+import 'package:traing_app_wth_getx/video_info.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -59,8 +62,13 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(
                     width: 5,
                   ),
-                  Icon(Icons.calendar_today_outlined,
-                      size: 20, color: AppColor.homePageIcons),
+                  InkWell(
+                    onTap: () {
+                      Get.to(() => Date());
+                    },
+                    child: Icon(Icons.calendar_today_outlined,
+                        size: 20, color: AppColor.homePageIcons),
+                  ),
                   SizedBox(
                     width: 10,
                   ),
@@ -94,10 +102,15 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(
                     width: 5,
                   ),
-                  Icon(
-                    Icons.arrow_forward,
-                    size: 20,
-                    color: AppColor.homePageIcons,
+                  InkWell(
+                    onTap: () {
+                      Get.to(() => VideoInfo());
+                    },
+                    child: Icon(
+                      Icons.arrow_forward,
+                      size: 20,
+                      color: AppColor.homePageIcons,
+                    ),
                   ),
                 ],
               ),

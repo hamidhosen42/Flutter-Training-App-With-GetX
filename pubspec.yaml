@@ -39,6 +39,7 @@ dependencies:
   get: any
   syncfusion_flutter_datepicker: any
   video_player: any
+  animated_splash_screen: any
 
 dev_dependencies:
   flutter_test:

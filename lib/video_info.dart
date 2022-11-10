@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors, sized_box_for_whitespace, unused_field, prefer_final_fields, avoid_unnecessary_containers, unused_local_variable, avoid_single_cascade_in_expression_statements, unnecessary_null_comparison, prefer_const_literals_to_create_immutables, unused_element
 
 import 'dart:convert';
+import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -18,8 +19,10 @@ class VideoInfo extends StatefulWidget {
 class _VideoInfoState extends State<VideoInfo> {
   List videoInfo = [];
   bool _playArea = false;
-  late VideoPlayerController _controller;
   bool _isPlaying = false;
+  bool _disposed = false;
+
+  late VideoPlayerController _controller;
 
   _initData() async {
     await DefaultAssetBundle.of(context)
@@ -28,8 +31,17 @@ class _VideoInfoState extends State<VideoInfo> {
               setState(() {
                 videoInfo = json.decode(value);
               })
-            });
+            }); 
   }
+
+  // @override
+  // Void disposed(){
+  //   _disposed=true;
+  //   _controller.pause();
+  //   _controller.play();
+  //   _controller=null;
+  //   super.dispose();
+  // }
 
   @override
   void initState() {
@@ -303,19 +315,26 @@ class _VideoInfoState extends State<VideoInfo> {
                 size: 36,
               )),
           InkWell(
-              onTap: () async {},
-              child: Icon(
-                Icons.play_arrow,
+              onTap: () async {
+                 if (_isPlaying) {
+                   setState(() {
+                     _isPlaying=false;
+                   });
+                  _controller.pause();
+                } else {
+                  setState(() {
+                    _isPlaying=true;
+                  });
+                  _controller.play();
+                }
+              },
+              child: Icon(_isPlaying?Icons.stop_circle:Icons.play_arrow,
                 color: Colors.white,
                 size: 36,
               )),
           InkWell(
               onTap: () async {
-                if (_isPlaying) {
-                  _controller.pause();
-                } else {
-                  _controller.play();
-                }
+               
               },
               child: Icon(
                 Icons.fast_forward,
@@ -325,6 +344,42 @@ class _VideoInfoState extends State<VideoInfo> {
         ],
       ),
     );
+  }
+
+  void _onControllerUpdate()async{
+    final controller = _controller;
+
+    if(controller==null)
+    {
+      debugPrint("Controller is null");
+      return;
+    }
+    if(!controller.value.isInitialized)
+    {
+      debugPrint("Controller can not be initialized");
+    }
+    final playing= controller.value.isPlaying;
+    _isPlaying=playing;
+  }
+
+    _initializeVideo(int index) async {
+    final controller =
+        VideoPlayerController.network(videoInfo[index]['videoUrl']);
+
+      final old=_controller;
+
+    _controller = controller;
+    setState(() {});
+    controller
+      ..initialize().then((_) {
+        controller.addListener(_onControllerUpdate);
+        controller.play();
+        setState(() {});
+      });
+  }
+
+  _onTapVideo(int index) {
+    _initializeVideo(index);
   }
 
   _playView(BuildContext context) {
@@ -344,23 +399,6 @@ class _VideoInfoState extends State<VideoInfo> {
             style: TextStyle(fontSize: 20, color: Colors.white60),
           )));
     }
-  }
-
-  _initializeVideo(int index) async {
-    final controller =
-        VideoPlayerController.network(videoInfo[index]['videoUrl']);
-
-    _controller = controller;
-    setState(() {});
-    controller
-      ..initialize().then((_) {
-        controller.play();
-        setState(() {});
-      });
-  }
-
-  _onTapVideo(int index) {
-    _initializeVideo(index);
   }
 
   _listView() {

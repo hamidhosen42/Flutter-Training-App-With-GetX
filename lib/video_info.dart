@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, sized_box_for_whitespace, unused_field, prefer_final_fields, avoid_unnecessary_containers, unused_local_variable, avoid_single_cascade_in_expression_statements, unnecessary_null_comparison, prefer_const_literals_to_create_immutables, unused_element
+// ignore_for_file: prefer_const_constructors, sized_box_for_whitespace, unused_field, prefer_final_fields, avoid_unnecessary_containers, unused_local_variable, avoid_single_cascade_in_expression_statements, unnecessary_null_comparison, prefer_const_literals_to_create_immutables, unused_element, override_on_non_overriding_member, prefer_is_empty
 
 import 'dart:convert';
 import 'dart:ffi';
@@ -21,8 +21,9 @@ class _VideoInfoState extends State<VideoInfo> {
   bool _playArea = false;
   bool _isPlaying = false;
   bool _disposed = false;
+  int _isPlayingIndex=-1;
 
-  late VideoPlayerController _controller;
+  VideoPlayerController? _controller;
 
   _initData() async {
     await DefaultAssetBundle.of(context)
@@ -34,21 +35,22 @@ class _VideoInfoState extends State<VideoInfo> {
             }); 
   }
 
-  // @override
-  // Void disposed(){
-  //   _disposed=true;
-  //   _controller.pause();
-  //   _controller.play();
-  //   _controller=null;
-  //   super.dispose();
-  // }
-
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _initData();
     // print(info);
+  }
+
+  @override
+  void disposed(){
+    _disposed=true;
+    _controller?.pause();
+    _controller?.dispose();
+    _controller=null;
+    
+    super.dispose();
   }
 
   @override
@@ -308,7 +310,13 @@ class _VideoInfoState extends State<VideoInfo> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           InkWell(
-              onTap: () async {},
+              onTap: () async {
+                final index = _isPlayingIndex-1;
+                if(index>=0 && videoInfo.length>=0)
+                {
+                  _initializeVideo(index);
+                }
+              },
               child: Icon(
                 Icons.fast_rewind,
                 color: Colors.white,
@@ -320,12 +328,12 @@ class _VideoInfoState extends State<VideoInfo> {
                    setState(() {
                      _isPlaying=false;
                    });
-                  _controller.pause();
+                  _controller?.pause();
                 } else {
                   setState(() {
                     _isPlaying=true;
                   });
-                  _controller.play();
+                  _controller?.play();
                 }
               },
               child: Icon(_isPlaying?Icons.stop_circle:Icons.play_arrow,
@@ -346,7 +354,21 @@ class _VideoInfoState extends State<VideoInfo> {
     );
   }
 
+var _onUpdateControllerTime;
   void _onControllerUpdate()async{
+    if(_disposed)
+    {
+      return;
+    }
+
+    _onUpdateControllerTime=0;
+    final now= DateTime.now().microsecondsSinceEpoch;
+    if(_onUpdateControllerTime>now)
+    {
+      return ;
+    }
+
+    _onUpdateControllerTime=now+500;
     final controller = _controller;
 
     if(controller==null)
@@ -369,9 +391,18 @@ class _VideoInfoState extends State<VideoInfo> {
       final old=_controller;
 
     _controller = controller;
+
+    if(old!=null)
+    {
+      old.removeListener(_onControllerUpdate);
+      old.pause();
+    }
+
     setState(() {});
     controller
       ..initialize().then((_) {
+        old?.dispose();
+        _isPlayingIndex=index;
         controller.addListener(_onControllerUpdate);
         controller.play();
         setState(() {});

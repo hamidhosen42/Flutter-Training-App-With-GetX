@@ -23,10 +23,10 @@ class MyApp extends StatelessWidget {
         // home: VideoInfo(),
 
         home: AnimatedSplashScreen(
-          duration: 3000,
+          duration: 3,
           splashIconSize: 300,
           splash:Image.asset("assets/logo.png"),
-          nextScreen: HomePage(),
+          nextScreen: VideoInfo(),
           splashTransition: SplashTransition.fadeTransition,
           // pageTransitionType: PageTransitionType.scale,
           // )),

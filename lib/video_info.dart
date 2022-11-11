@@ -1,7 +1,8 @@
-// ignore_for_file: prefer_const_constructors, sized_box_for_whitespace, unused_field, prefer_final_fields, avoid_unnecessary_containers, unused_local_variable, avoid_single_cascade_in_expression_statements, unnecessary_null_comparison, prefer_const_literals_to_create_immutables, unused_element, override_on_non_overriding_member, prefer_is_empty
+// ignore_for_file: prefer_const_constructors, sized_box_for_whitespace, unused_field, prefer_final_fields, avoid_unnecessary_containers, unused_local_variable, avoid_single_cascade_in_expression_statements, unnecessary_null_comparison, prefer_const_literals_to_create_immutables, unused_element, override_on_non_overriding_member, prefer_is_empty, prefer_typing_uninitialized_variables, prefer_conditional_assignment
 
 import 'dart:convert';
 import 'dart:ffi';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -21,7 +22,7 @@ class _VideoInfoState extends State<VideoInfo> {
   bool _playArea = false;
   bool _isPlaying = false;
   bool _disposed = false;
-  int _isPlayingIndex=-1;
+  int _isPlayingIndex = -1;
 
   VideoPlayerController? _controller;
 
@@ -32,7 +33,7 @@ class _VideoInfoState extends State<VideoInfo> {
               setState(() {
                 videoInfo = json.decode(value);
               })
-            }); 
+            });
   }
 
   @override
@@ -44,12 +45,12 @@ class _VideoInfoState extends State<VideoInfo> {
   }
 
   @override
-  void disposed(){
-    _disposed=true;
+  void disposed() {
+    _disposed = true;
     _controller?.pause();
     _controller?.dispose();
-    _controller=null;
-    
+    _controller = null;
+
     super.dispose();
   }
 
@@ -303,18 +304,115 @@ class _VideoInfoState extends State<VideoInfo> {
     );
   }
 
+  String convertTow(int value) {
+    return value < 10 ? "0$value" : "$value";
+  }
+
   Widget _controlView(BuildContext context) {
+    final noMute = (_controller?.value?.volume ?? 0) > 0;
+    final duaration = _duration?.inSeconds ?? 0;
+    final head = _position?.inSeconds ?? 0;
+    final remained = max(0, duaration - head);
+    final mins = convertTow(remained ~/ 60.0);
+    final secs = convertTow(remained % 60);
+
     return Padding(
-      padding: const EdgeInsets.only(left: 25, right: 25, bottom: 10, top: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      padding: const EdgeInsets.only(left: 25, right: 25, bottom: 5, top: 5),
+      child: Column(
         children: [
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: Colors.red[700],
+              inactiveTrackColor: Colors.red[100],
+              trackShape: RoundedRectSliderTrackShape(),
+              trackHeight: 2.0,
+              thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10),
+              thumbColor: Colors.redAccent,
+              overlayColor: Colors.red.withAlpha(32),
+              overlayShape: RoundSliderOverlayShape(overlayRadius: 15),
+              tickMarkShape: RoundSliderTickMarkShape(),
+              activeTickMarkColor: Colors.red[700],
+              inactiveTickMarkColor: Colors.red[100],
+              valueIndicatorShape: PaddleSliderValueIndicatorShape(),
+              valueIndicatorColor: Colors.redAccent,
+              valueIndicatorTextStyle: TextStyle(color: Colors.white),
+            ),
+            child: Slider(
+              value: max(0,min(_progress*100,100)),
+              min: 0,
+              max: 100,
+              divisions: 100,
+              label: _position?.toString().split(".")[0],
+              onChanged: (value){
+                setState(() {
+                  _progress=value*0.01;
+                });
+              },
+              onChangeStart: (value){
+                _controller?.pause();
+              },
+              onChangeEnd: (value){
+                final duration = _controller?.value?.duration;
+                if(duration!=null)
+                {
+                  var newValue=max(0, min(value, 99))*0.01;
+                  var millis = (duration.inMilliseconds*newValue).toInt();
+                  _controller?.seekTo(Duration(milliseconds: millis));
+                  _controller?.play();
+                }
+              },
+            ),
+          ),
+
+          Container(
+            child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                InkWell(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Container(
+                decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [
+                  BoxShadow(
+                    offset: Offset(0.0, 0.0),
+                    blurRadius: 4.0,
+                    color: Color.fromARGB(50, 0, 0, 0),
+                  )
+                ]),
+                child: Icon(
+                  noMute ? Icons.volume_up : Icons.volume_off,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            onTap: () {
+              if (noMute) {
+                _controller?.setVolume(0);
+              } else {
+                _controller?.setVolume(1.0);
+              }
+              setState(() {});
+            },
+          ),
           InkWell(
               onTap: () async {
-                final index = _isPlayingIndex-1;
-                if(index>=0 && videoInfo.length>=0)
-                {
+                final index = _isPlayingIndex - 1;
+                if (index >= 0 && videoInfo.length >= 0) {
                   _initializeVideo(index);
+                } else {
+                  Get.snackbar("Video List", "",
+                      snackPosition: SnackPosition.BOTTOM,
+                      icon: Icon(
+                        Icons.face,
+                        size: 30,
+                        color: Colors.white,
+                      ),
+                      backgroundColor: AppColor.gradientSecond,
+                      colorText: Colors.white,
+                      messageText: Text(
+                        "No videos ahead !",
+                        style: TextStyle(fontSize: 20, color: Colors.white),
+                      ));
                 }
               },
               child: Icon(
@@ -324,76 +422,80 @@ class _VideoInfoState extends State<VideoInfo> {
               )),
           InkWell(
               onTap: () async {
-                 if (_isPlaying) {
-                   setState(() {
-                     _isPlaying=false;
-                   });
+                if (_isPlaying) {
+                  setState(() {
+                    _isPlaying = false;
+                  });
                   _controller?.pause();
                 } else {
                   setState(() {
-                    _isPlaying=true;
+                    _isPlaying = true;
                   });
                   _controller?.play();
                 }
               },
-              child: Icon(_isPlaying?Icons.stop_circle:Icons.play_arrow,
+              child: Icon(
+                _isPlaying ? Icons.stop_circle : Icons.play_arrow,
                 color: Colors.white,
                 size: 36,
               )),
           InkWell(
               onTap: () async {
-               
+                final index = _isPlayingIndex + 1;
+
+                if (index <= videoInfo.length - 1) {
+                  _initializeVideo(index);
+                } else {
+                  Get.snackbar("Video List", "",
+                      snackPosition: SnackPosition.BOTTOM,
+                      icon: Icon(
+                        Icons.face,
+                        size: 30,
+                        color: Colors.white,
+                      ),
+                      backgroundColor: AppColor.gradientSecond,
+                      colorText: Colors.white,
+                      messageText: Text(
+                        "You have finished watching all videos. Congrats !",
+                        style: TextStyle(fontSize: 20, color: Colors.white),
+                      ));
+                }
               },
               child: Icon(
                 Icons.fast_forward,
-                color: Colors.white,
+                color: Colors.white, 
                 size: 36,
-              ))
+              )),
+              Text(
+                "$mins:$secs",
+                style: TextStyle(
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(0.0,1.0),
+                      blurRadius: 4.0,
+                      color: Color.fromARGB(150, 0, 0, 0),
+                    )
+                  ]
+                ),
+              ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-var _onUpdateControllerTime;
-  void _onControllerUpdate()async{
-    if(_disposed)
-    {
-      return;
-    }
-
-    _onUpdateControllerTime=0;
-    final now= DateTime.now().microsecondsSinceEpoch;
-    if(_onUpdateControllerTime>now)
-    {
-      return ;
-    }
-
-    _onUpdateControllerTime=now+500;
-    final controller = _controller;
-
-    if(controller==null)
-    {
-      debugPrint("Controller is null");
-      return;
-    }
-    if(!controller.value.isInitialized)
-    {
-      debugPrint("Controller can not be initialized");
-    }
-    final playing= controller.value.isPlaying;
-    _isPlaying=playing;
-  }
-
-    _initializeVideo(int index) async {
+  _initializeVideo(int index) async {
     final controller =
         VideoPlayerController.network(videoInfo[index]['videoUrl']);
 
-      final old=_controller;
+    final old = _controller;
 
     _controller = controller;
 
-    if(old!=null)
-    {
+    if (old != null) {
       old.removeListener(_onControllerUpdate);
       old.pause();
     }
@@ -402,7 +504,7 @@ var _onUpdateControllerTime;
     controller
       ..initialize().then((_) {
         old?.dispose();
-        _isPlayingIndex=index;
+        _isPlayingIndex = index;
         controller.addListener(_onControllerUpdate);
         controller.play();
         setState(() {});
@@ -413,7 +515,7 @@ var _onUpdateControllerTime;
     _initializeVideo(index);
   }
 
-  _playView(BuildContext context) {
+  Widget _playView(BuildContext context) {
     final controller = _controller;
 
     if (controller != null && controller.value.isInitialized) {
@@ -430,6 +532,63 @@ var _onUpdateControllerTime;
             style: TextStyle(fontSize: 20, color: Colors.white60),
           )));
     }
+  }
+
+  var _onUpdateControllerTime;
+  Duration? _duration;
+  Duration? _position;
+  var _progress = 0.0;
+
+  void _onControllerUpdate() async {
+    if (_disposed) {
+      return;
+    }
+
+    _onUpdateControllerTime = 0;
+    final now = DateTime.now().microsecondsSinceEpoch;
+    if (_onUpdateControllerTime > now) {
+      return;
+    }
+
+    _onUpdateControllerTime = now + 500;
+    final controller = _controller;
+
+    if (controller == null) {
+      debugPrint("Controller is null");
+      return;
+    }
+    if (!controller.value.isInitialized) {
+      debugPrint("Controller can not be initialized");
+      return;
+    }
+
+    if(_duration== null)
+    {
+      _duration=_controller?.value.duration;
+    }
+    var duration=_duration;
+    if(duration==null)
+    {
+      return;
+    }
+
+    var position = await controller.position;
+    _position=position;
+
+    final playing = controller.value.isPlaying;
+    if(playing)
+    {
+      //handle progress indicator
+      if(_disposed)
+      {
+        return;
+      }
+      setState(() {
+        // 60  30 //30/60 = 0.5
+        _progress=position!.inMicroseconds.ceilToDouble()/duration.inMilliseconds.ceilToDouble();
+      });
+    }
+    _isPlaying = playing;
   }
 
   _listView() {

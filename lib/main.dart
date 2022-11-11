@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
           duration: 3,
           splashIconSize: 300,
           splash:Image.asset("assets/logo.png"),
-          nextScreen: VideoInfo(),
+          nextScreen: HomePage(),
           splashTransition: SplashTransition.fadeTransition,
           // pageTransitionType: PageTransitionType.scale,
           // )),
